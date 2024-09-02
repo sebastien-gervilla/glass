@@ -7,11 +7,19 @@ import (
 	token "glass/language/token"
 )
 
+type (
+	prefixParsingFunction func() ast.Expression
+	infixParsingFunction  func(ast.Expression) ast.Expression
+)
+
 type Parser struct {
 	lexer        *lexer.Lexer
 	currentToken token.Token
 	peekToken    token.Token
 	errors       []string
+
+	prefixParsingFunctions map[token.TokenType]prefixParsingFunction
+	infixParsingFunctions  map[token.TokenType]infixParsingFunction
 }
 
 func New(lexer *lexer.Lexer) *Parser {
