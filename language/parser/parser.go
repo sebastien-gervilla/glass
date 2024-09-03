@@ -134,7 +134,7 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 		Token: parser.currentToken,
 	}
 
-	if parser.expectPeek(token.IDENTIFIER) {
+	if !parser.expectPeek(token.IDENTIFIER) {
 		return nil
 	}
 
@@ -143,9 +143,11 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 		Value: parser.currentToken.Literal,
 	}
 
-	if parser.expectPeek(token.ASSIGN) {
+	if !parser.expectPeek(token.ASSIGN) {
 		return nil
 	}
+
+	parser.nextToken()
 
 	statement.Expression = parser.parseExpression(LOWEST)
 
