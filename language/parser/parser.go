@@ -159,6 +159,12 @@ func (parser *Parser) parseBlockStatement() *ast.BlockStatement {
 	return blockStatement
 }
 
+func (parser *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	statement := &ast.ExpressionStatement{}
+
+	statement.Expression = parser.parseExpression(LOWEST)
+
+	if parser.isPeekToken(token.SEMICOLON) {
 		parser.nextToken()
 	}
 
