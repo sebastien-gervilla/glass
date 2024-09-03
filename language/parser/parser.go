@@ -95,7 +95,7 @@ func (parser *Parser) registerInfix(tokenType token.TokenType, function infixPar
 }
 
 func (parser *Parser) ParseProgram() *ast.Program {
-	program := ast.Program{
+	program := &ast.Program{
 		Statements: []ast.Statement{},
 	}
 
@@ -109,7 +109,7 @@ func (parser *Parser) ParseProgram() *ast.Program {
 		parser.nextToken()
 	}
 
-	return nil
+	return program
 }
 
 // Statements
