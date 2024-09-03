@@ -76,7 +76,7 @@ func (parser *Parser) ParseProgram() *ast.Program {
 	}
 
 	for parser.currentToken.Type != token.EOF {
-		statement := parseStatement(parser)
+		statement := parser.parseStatement()
 
 		if statement != nil {
 			program.Statements = append(program.Statements, statement)
@@ -88,7 +88,9 @@ func (parser *Parser) ParseProgram() *ast.Program {
 	return nil
 }
 
-func parseStatement(parser *Parser) ast.Statement {
+// Statements
+
+func (parser *Parser) parseStatement() ast.Statement {
 	switch parser.currentToken.Type {
 
 	case token.LET:
