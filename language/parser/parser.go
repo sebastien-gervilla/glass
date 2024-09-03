@@ -335,6 +335,40 @@ func (parser *Parser) parseFunction() ast.Expression {
 	return function
 }
 
+func (parser *Parser) parseFunctionParameters() []*ast.Identifier {
+	parameters := []*ast.Identifier{}
+
+	if parser.isCurrentToken(token.RPAREN) {
+		parser.nextToken()
+		return parameters
+	}
+
+	parser.nextToken()
+
+	identifier := &ast.Identifier{
+		Token: parser.currentToken,
+		Value: parser.currentToken.Literal,
+	}
+	parameters = append(parameters, identifier)
+
+	for parser.isPeekToken(token.COMMA) {
+		parser.nextToken()
+		parser.nextToken()
+
+		identifier := &ast.Identifier{
+			Token: parser.currentToken,
+			Value: parser.currentToken.Literal,
+		}
+		parameters = append(parameters, identifier)
+	}
+
+	if parser.expectPeek(token.RPAREN) {
+		return nil // TODO: Errors
+	}
+
+	return parameters
+}
+
 
 // Utils
 
