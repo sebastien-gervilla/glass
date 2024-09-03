@@ -229,6 +229,13 @@ func (parser *Parser) parseIntegerLiteral() ast.Expression {
 	return literal
 }
 
+func (parser *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{
+		Token: parser.currentToken,
+		Value: parser.isCurrentToken(token.TRUE),
+	}
+}
+
 
 // Utils
 
