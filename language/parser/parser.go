@@ -249,6 +249,20 @@ func (parser *Parser) parsePrefixExpression() ast.Expression {
 	return expression
 }
 
+func (parser *Parser) parseInfixExpression(leftExpression ast.Expression) ast.Expression {
+	expression := &ast.InfixExpression{
+		Token:          parser.currentToken,
+		LeftExpression: leftExpression,
+		Operator:       parser.currentToken.Literal,
+	}
+
+	precedence := parser.getCurrentPrecedence()
+	parser.nextToken()
+	expression.RightExpression = parser.parseExpression(precedence)
+
+	return expression
+}
+
 
 // Utils
 
