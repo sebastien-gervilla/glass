@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"glass/language/ast"
+	"strings"
+)
 
 type ObjectType string
 
@@ -10,6 +15,7 @@ const (
 	NULL_OBJECT         = "NULL"
 	RETURN_VALUE_OBJECT = "RETURN_VALUE"
 	ERROR_OBJECT        = "ERROR"
+	FUNCTION_OBJECT     = "FUNCTION"
 )
 
 type Object interface {
@@ -87,3 +93,26 @@ type ReturnValue struct {
 
 func (value *ReturnValue) GetType() ObjectType { return RETURN_VALUE_OBJECT }
 func (value *ReturnValue) Inspect() string     { return value.Value.Inspect() }
+
+// Functions
+type Function struct {
+	Parameters  []*ast.Identifier
+	Body        *ast.BlockStatement
+	Environment *Environment
+}
+
+func (function *Function) GetType() ObjectType { return FUNCTION_OBJECT }
+func (function *Function) Inspect() string {
+	var buffer bytes.Buffer
+	params := []string{}
+	for _, p := range function.Parameters {
+		params = append(params, p.String())
+	}
+	buffer.WriteString("function")
+	buffer.WriteString("(")
+	buffer.WriteString(strings.Join(params, ", "))
+	buffer.WriteString(") {\n")
+	buffer.WriteString(function.Body.String())
+	buffer.WriteString("\n}")
+	return buffer.String()
+}
