@@ -5,7 +5,31 @@ import (
 	ast "glass/language/ast"
 	lexer "glass/language/lexer"
 	token "glass/language/token"
+	"strconv"
 )
+
+const (
+	_ int = iota
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // > or <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -expression or !expression
+	CALL        // myFunction(expression, expression)
+)
+
+var precedences = map[token.TokenType]int{
+	token.EQUALS:       EQUALS,
+	token.NOT_EQUALS:   EQUALS,
+	token.LESS_THAN:    LESSGREATER,
+	token.GREATER_THAN: LESSGREATER,
+	token.PLUS:         SUM,
+	token.MINUS:        SUM,
+	token.SLASH:        PRODUCT,
+	token.ASTERISK:     PRODUCT,
+	token.LPAREN:       CALL,
+}
 
 type (
 	prefixParsingFunction func() ast.Expression
