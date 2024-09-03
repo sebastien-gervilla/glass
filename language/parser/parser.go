@@ -206,6 +206,13 @@ func (parser *Parser) parseExpression(precedence int) ast.Expression {
 	return leftExpression
 }
 
+func (parser *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{
+		Token: parser.currentToken,
+		Value: parser.currentToken.Literal,
+	}
+}
+
 // Utils
 
 func (parser *Parser) isCurrentToken(token token.TokenType) bool {
