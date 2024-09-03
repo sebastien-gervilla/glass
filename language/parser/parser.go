@@ -236,6 +236,19 @@ func (parser *Parser) parseBoolean() ast.Expression {
 	}
 }
 
+func (parser *Parser) parsePrefixExpression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token:    parser.currentToken,
+		Operator: parser.currentToken.Literal,
+	}
+
+	parser.nextToken()
+
+	expression.Expression = parser.parseExpression(PREFIX)
+
+	return expression
+}
+
 
 // Utils
 
