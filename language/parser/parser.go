@@ -306,18 +306,18 @@ func (parser *Parser) parseIfExpression() ast.Expression {
 		Token: parser.currentToken,
 	}
 
-	if parser.expectPeek(token.LPAREN) {
+	if !parser.expectPeek(token.LPAREN) {
 		return nil // TODO: Error
 	}
 
 	parser.nextToken()
 	expression.Condition = parser.parseExpression(LOWEST)
 
-	if parser.expectPeek(token.RPAREN) {
+	if !parser.expectPeek(token.RPAREN) {
 		return nil // TODO: Error
 	}
 
-	if parser.expectPeek(token.LBRACE) {
+	if !parser.expectPeek(token.LBRACE) {
 		return nil // TODO: Error
 	}
 
@@ -342,18 +342,13 @@ func (parser *Parser) parseFunction() ast.Expression {
 		Token: parser.currentToken,
 	}
 
-	if parser.expectPeek(token.LPAREN) {
+	if !parser.expectPeek(token.LPAREN) {
 		return nil // TODO: Errors
 	}
 
-	parser.nextToken()
 	function.Parameters = parser.parseFunctionParameters()
 
-	if parser.expectPeek(token.RPAREN) {
-		return nil // TODO: Errors
-	}
-
-	if parser.expectPeek(token.LPAREN) {
+	if !parser.expectPeek(token.LBRACE) {
 		return nil // TODO: Errors
 	}
 
@@ -364,7 +359,7 @@ func (parser *Parser) parseFunction() ast.Expression {
 func (parser *Parser) parseFunctionParameters() []*ast.Identifier {
 	parameters := []*ast.Identifier{}
 
-	if parser.isCurrentToken(token.RPAREN) {
+	if parser.isPeekToken(token.RPAREN) {
 		parser.nextToken()
 		return parameters
 	}
@@ -388,7 +383,7 @@ func (parser *Parser) parseFunctionParameters() []*ast.Identifier {
 		parameters = append(parameters, identifier)
 	}
 
-	if parser.expectPeek(token.RPAREN) {
+	if !parser.expectPeek(token.RPAREN) {
 		return nil // TODO: Errors
 	}
 
