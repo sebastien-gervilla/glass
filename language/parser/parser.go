@@ -166,6 +166,24 @@ func (parser *Parser) expectPeek(token token.TokenType) bool {
 	return false
 }
 
+func (parser *Parser) getCurrentPrecedence() int {
+	precedence, ok := precedences[parser.currentToken.Type]
+	if !ok {
+		return LOWEST
+	}
+
+	return precedence
+}
+
+func (parser *Parser) getPeekPrecedence() int {
+	precedence, ok := precedences[parser.peekToken.Type]
+	if !ok {
+		return LOWEST
+	}
+
+	return precedence
+}
+
 func (parser *Parser) GetErrors() []string {
 	return parser.errors
 }
