@@ -275,6 +275,42 @@ func (parser *Parser) parseGroupedExpression() ast.Expression {
 	return expression
 }
 
+func (parser *Parser) parseIfExpression() ast.Expression {
+	expression := &ast.IfExpression{
+		Token: parser.currentToken,
+	}
+
+	if parser.expectPeek(token.LPAREN) {
+		return nil // TODO: Error
+	}
+
+	parser.nextToken()
+	expression.Condition = parser.parseExpression(LOWEST)
+
+	if parser.expectPeek(token.RPAREN) {
+		return nil // TODO: Error
+	}
+
+	if parser.expectPeek(token.LBRACE) {
+		return nil // TODO: Error
+	}
+
+	expression.Consequence = parser.parseBlockStatement()
+
+	if !parser.isPeekToken(token.ELSE) {
+		return expression
+	}
+
+	// Parsing else expression
+	parser.nextToken()
+	if !parser.expectPeek(token.LBRACE) {
+		return nil // TODO: Error
+	}
+
+	expression.Alternative = parser.parseBlockStatement()
+	return expression
+}
+
 
 // Utils
 
