@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	token "glass/language/token"
+	"strings"
 )
 
 // Interfaces
@@ -107,3 +108,20 @@ func (statement *ExpressionStatement) String() string {
 	}
 	return ""
 }
+
+// Block statement
+type BlockStatement struct {
+	Token      token.Token
+	Statements []Statement
+}
+
+func (statement *BlockStatement) statementNode()       {}
+func (statement *BlockStatement) TokenLiteral() string { return statement.Token.Literal }
+func (statement *BlockStatement) String() string {
+	var buffer bytes.Buffer
+	for _, statement := range statement.Statements {
+		buffer.WriteString(statement.String())
+	}
+	return buffer.String()
+}
+
