@@ -28,15 +28,28 @@ func (e *Error) Inspect() string     { return "ERROR: " + e.Message }
 // Environment
 type Environment struct {
 	store map[string]Object
+	outer *Environment
 }
 
 func NewEnvironment() *Environment {
 	store := make(map[string]Object)
-	return &Environment{store: store}
+	return &Environment{store: store, outer: nil}
+}
+
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+	environment := NewEnvironment()
+	environment.outer = outer
+	return environment
 }
 
 func (environment *Environment) Get(name string) (Object, bool) {
 	obj, ok := environment.store[name]
+
+	// Reach for outer variables
+	if !ok && environment.outer != nil {
+		obj, ok = environment.outer.Get(name)
+	}
+
 	return obj, ok
 }
 
