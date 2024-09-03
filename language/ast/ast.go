@@ -125,3 +125,13 @@ func (statement *BlockStatement) String() string {
 	return buffer.String()
 }
 
+// Integer literal
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
+func (integer *IntegerLiteral) expressionNode()      {}
+func (integer *IntegerLiteral) TokenLiteral() string { return integer.Token.Literal }
+func (integer *IntegerLiteral) String() string       { return integer.Token.Literal }
+
