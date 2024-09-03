@@ -210,3 +210,27 @@ func (statement *IfExpression) String() string {
 	return buffer.String()
 }
 
+// Function
+type Function struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (function *Function) expressionNode()      {}
+func (function *Function) TokenLiteral() string { return function.Token.Literal }
+func (function *Function) String() string {
+	var buffer bytes.Buffer
+	parameters := []string{}
+	for _, p := range function.Parameters {
+		parameters = append(parameters, p.String())
+	}
+
+	buffer.WriteString(function.TokenLiteral())
+	buffer.WriteString("(")
+	buffer.WriteString(strings.Join(parameters, ", "))
+	buffer.WriteString(") ")
+	buffer.WriteString(function.Body.String())
+	return buffer.String()
+}
+
