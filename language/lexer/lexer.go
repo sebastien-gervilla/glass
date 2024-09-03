@@ -46,7 +46,28 @@ func (lexer *Lexer) Next() token.Token {
 	switch lexer.character {
 
 	case '=':
-		nextToken = newToken(token.ASSIGN, lexer.character)
+		if lexer.peekCharacter() == '=' {
+			// Advance to peeked character
+			lexer.readCharacter()
+			nextToken = token.Token{
+				Type:    token.EQUALS,
+				Literal: "==",
+			}
+		} else {
+			nextToken = newToken(token.ASSIGN, lexer.character)
+		}
+
+	case '!':
+		if lexer.peekCharacter() == '=' {
+			// Advance to peeked character
+			lexer.readCharacter()
+			nextToken = token.Token{
+				Type:    token.EQUALS,
+				Literal: "!=",
+			}
+		} else {
+			nextToken = newToken(token.NOT, lexer.character)
+		}
 
 	case ';':
 		nextToken = newToken(token.SEMICOLON, lexer.character)
