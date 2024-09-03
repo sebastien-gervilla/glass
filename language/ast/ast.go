@@ -187,4 +187,26 @@ func (boolean *Boolean) expressionNode()      {}
 func (boolean *Boolean) TokenLiteral() string { return boolean.Token.Literal }
 func (boolean *Boolean) String() string       { return boolean.Token.Literal }
 
+// If expression
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (statement *IfExpression) expressionNode()      {}
+func (statement *IfExpression) TokenLiteral() string { return statement.Token.Literal }
+func (statement *IfExpression) String() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("if")
+	buffer.WriteString(statement.Condition.String())
+	buffer.WriteString(" ")
+	buffer.WriteString(statement.Consequence.String())
+	if statement.Alternative != nil {
+		buffer.WriteString("else ")
+		buffer.WriteString(statement.Alternative.String())
+	}
+	return buffer.String()
+}
 
