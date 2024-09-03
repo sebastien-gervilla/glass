@@ -11,6 +11,10 @@ var keywords = map[string]TokenType{
 	"let":      LET,
 	"function": FUNCTION,
 	"return":   RETURN,
+	"true":     TRUE,
+	"false":    FALSE,
+	"if":       IF,
+	"else":     ELSE,
 }
 
 const (
