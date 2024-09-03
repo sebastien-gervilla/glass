@@ -52,6 +52,30 @@ func New(lexer *lexer.Lexer) *Parser {
 		errors: []string{},
 	}
 
+	// Registering prefixes
+	parser.prefixParsingFunctions = make(map[token.TokenType]prefixParsingFunction)
+	parser.registerPrefix(token.IDENTIFIER, parser.parseIdentifier)
+	parser.registerPrefix(token.INT, parser.parseIntegerLiteral)
+	parser.registerPrefix(token.NOT, parser.parsePrefixExpression)
+	parser.registerPrefix(token.MINUS, parser.parsePrefixExpression)
+	parser.registerPrefix(token.TRUE, parser.parseBoolean)
+	parser.registerPrefix(token.FALSE, parser.parseBoolean)
+	parser.registerPrefix(token.LPAREN, parser.parseGroupedExpression)
+	parser.registerPrefix(token.IF, parser.parseIfExpression)
+	parser.registerPrefix(token.FUNCTION, parser.parseFunction)
+
+	// Registering infixes
+	parser.infixParsingFunctions = make(map[token.TokenType]infixParsingFunction)
+	parser.registerInfix(token.EQUALS, parser.parseInfixExpression)
+	parser.registerInfix(token.NOT_EQUALS, parser.parseInfixExpression)
+	parser.registerInfix(token.GREATER_THAN, parser.parseInfixExpression)
+	parser.registerInfix(token.LESS_THAN, parser.parseInfixExpression)
+	parser.registerInfix(token.PLUS, parser.parseInfixExpression)
+	parser.registerInfix(token.MINUS, parser.parseInfixExpression)
+	parser.registerInfix(token.SLASH, parser.parseInfixExpression)
+	parser.registerInfix(token.ASTERISK, parser.parseInfixExpression)
+	parser.registerInfix(token.LPAREN, parser.parseCallExpression)
+
 	// Read two tokens, so currentToken and peekToken are both set
 	parser.nextToken()
 	parser.nextToken()
