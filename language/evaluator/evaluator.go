@@ -12,24 +12,32 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
-func Evaluate(node ast.Node) object.Object {
+func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 	switch node := node.(type) {
 
 	// Statements
 	case *ast.Program:
 		return evaluateProgram(node)
 
+	case *ast.LetStatement:
+		value := Evaluate(node.Expression, environment)
+		if isError(value) {
+			return value
+		}
+
+		environment.Set(node.Identifier.Value, value)
+
 	case *ast.ExpressionStatement:
-		return Evaluate(node.Expression)
+		return Evaluate(node.Expression, environment)
 
 	case *ast.ReturnStatement:
-		value := Evaluate(node.Expression)
+		value := Evaluate(node.Expression, environment)
 		if isError(value) {
 			return value
 		}
 
 		return &object.ReturnValue{
-			Value: Evaluate(node.Expression),
+			Value: Evaluate(node.Expression, environment),
 		}
 
 	// Expressions
@@ -41,20 +49,23 @@ func Evaluate(node ast.Node) object.Object {
 	case *ast.Boolean:
 		return newBooleanObject(node.Value)
 
+	case *ast.Identifier:
+		return evaluateIdentifier(node, environment)
+
 	case *ast.PrefixExpression:
-		right := Evaluate(node.Expression)
+		right := Evaluate(node.Expression, environment)
 		if isError(right) {
 			return right
 		}
 		return evaluatePrefixExpression(node.Operator, right)
 
 	case *ast.InfixExpression:
-		left := Evaluate(node.LeftExpression)
+		left := Evaluate(node.LeftExpression, environment)
 		if isError(left) {
 			return left
 		}
 
-		right := Evaluate(node.RightExpression)
+		right := Evaluate(node.RightExpression, environment)
 		if isError(right) {
 			return right
 		}
@@ -107,6 +118,15 @@ func evaluateBlockStatement(blockStatement *ast.BlockStatement) object.Object {
 	}
 
 	return result
+}
+
+func evaluateIdentifier(identifier *ast.Identifier, environment *object.Environment) object.Object {
+	value, ok := environment.Get(identifier.Value)
+	if !ok {
+		return newError("identifier not found: " + identifier.Value)
+	}
+
+	return value
 }
 
 func evaluatePrefixExpression(operator string, right object.Object) object.Object {
