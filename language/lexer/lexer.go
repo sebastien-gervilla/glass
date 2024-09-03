@@ -30,6 +30,14 @@ func (lexer *Lexer) readCharacter() {
 	lexer.readPosition += 1
 }
 
+func (lexer *Lexer) peekCharacter() byte {
+	if lexer.readPosition >= len(lexer.input) {
+		return 0
+	}
+
+	return lexer.input[lexer.readPosition]
+}
+
 func (lexer *Lexer) Next() token.Token {
 	var nextToken token.Token
 
