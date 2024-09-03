@@ -311,6 +311,30 @@ func (parser *Parser) parseIfExpression() ast.Expression {
 	return expression
 }
 
+func (parser *Parser) parseFunction() ast.Expression {
+	function := &ast.Function{
+		Token: parser.currentToken,
+	}
+
+	if parser.expectPeek(token.LPAREN) {
+		return nil // TODO: Errors
+	}
+
+	parser.nextToken()
+	function.Parameters = parser.parseFunctionParameters()
+
+	if parser.expectPeek(token.RPAREN) {
+		return nil // TODO: Errors
+	}
+
+	if parser.expectPeek(token.LPAREN) {
+		return nil // TODO: Errors
+	}
+
+	function.Body = parser.parseBlockStatement()
+	return function
+}
+
 
 // Utils
 
