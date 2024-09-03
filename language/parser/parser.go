@@ -263,6 +263,18 @@ func (parser *Parser) parseInfixExpression(leftExpression ast.Expression) ast.Ex
 	return expression
 }
 
+func (parser *Parser) parseGroupedExpression() ast.Expression {
+	parser.nextToken()
+
+	expression := parser.parseExpression(LOWEST)
+
+	if !parser.expectPeek(token.RPAREN) {
+		return nil // TODO: Error
+	}
+
+	return expression
+}
+
 
 // Utils
 
