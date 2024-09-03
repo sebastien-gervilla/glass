@@ -23,8 +23,16 @@ const (
 	INT        = "INT"
 
 	// Operators
-	ASSIGN = "="
-	PLUS   = "+"
+	ASSIGN       = "="
+	EQUALS       = "=="
+	NOT_EQUALS   = "!="
+	GREATER_THAN = ">"
+	LESS_THAN    = "<"
+	PLUS         = "+"
+	MINUS        = "-"
+	SLASH        = "/"
+	ASTERISK     = "*"
+	NOT          = "!"
 
 	// Delimiters
 	COMMA     = ","
@@ -35,9 +43,13 @@ const (
 	RBRACE    = "}"
 
 	// Keywords
-	FUNCTION = "FUNCTION"
 	LET      = "LET"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	FUNCTION = "FUNCTION"
 	RETURN   = "RETURN"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
 )
 
 func LookupIdentifier(identifier string) TokenType {
