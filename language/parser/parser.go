@@ -369,6 +369,41 @@ func (parser *Parser) parseFunctionParameters() []*ast.Identifier {
 	return parameters
 }
 
+func (parser *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	expression := &ast.CallExpression{
+		Token:     parser.currentToken,
+		Function:  function,
+		Arguments: parser.parseCallArguments(),
+	}
+
+	return expression
+}
+
+func (parser *Parser) parseCallArguments() []ast.Expression {
+	arguments := []ast.Expression{}
+
+	if parser.isPeekToken(token.RPAREN) {
+		parser.nextToken()
+		return arguments
+	}
+
+	parser.nextToken()
+
+	arguments = append(arguments, parser.parseExpression(LOWEST))
+
+	for parser.isPeekToken(token.COMMA) {
+		parser.nextToken()
+		parser.nextToken()
+
+		arguments = append(arguments, parser.parseExpression(LOWEST))
+	}
+
+	if !parser.expectPeek(token.RPAREN) {
+		return nil // TODO: Errors
+	}
+
+	return arguments
+}
 
 // Utils
 
