@@ -100,7 +100,7 @@ func (parser *Parser) parseStatement() ast.Statement {
 		return parser.parseReturnStatement()
 
 	default:
-		return nil
+		return parser.parseExpressionStatement()
 
 	}
 }
@@ -123,8 +123,9 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
-	// TODO: Expresssions
-	for parser.isCurrentToken(token.SEMICOLON) {
+	statement.Expression = parser.parseExpression(LOWEST)
+
+	for parser.isPeekToken(token.SEMICOLON) {
 		parser.nextToken()
 	}
 
@@ -137,9 +138,16 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	parser.nextToken()
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !parser.isCurrentToken(token.SEMICOLON) {
+
+	statement.Expression = parser.parseExpression(LOWEST)
+
+	for !parser.isPeekToken(token.SEMICOLON) {
+		parser.nextToken()
+	}
+
+	return statement
+}
+
 func (parser *Parser) parseBlockStatement() *ast.BlockStatement {
 	blockStatement := &ast.BlockStatement{
 		Token:      parser.currentToken,
