@@ -63,6 +63,13 @@ func (parser *Parser) nextToken() {
 	parser.peekToken = parser.lexer.Next()
 }
 
+func (parser *Parser) registerPrefix(tokenType token.TokenType, function prefixParsingFunction) {
+	parser.prefixParsingFunctions[tokenType] = function
+}
+func (parser *Parser) registerInfix(tokenType token.TokenType, function infixParsingFunction) {
+	parser.infixParsingFunctions[tokenType] = function
+}
+
 func (parser *Parser) ParseProgram() *ast.Program {
 	program := ast.Program{
 		Statements: []ast.Statement{},
