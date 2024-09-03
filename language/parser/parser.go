@@ -146,6 +146,33 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return statement
 }
 
+// Expressions
+
+func (parser *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := parser.prefixParsingFunctions[parser.currentToken.Type]
+
+	if prefix == nil {
+		message := fmt.Sprintf("no prefix parse function found for %q token", parser.currentToken.Type)
+		parser.errors = append(parser.errors, message)
+		return nil
+	}
+
+	leftExpression := prefix()
+
+	for !parser.isPeekToken(token.SEMICOLON) && precedence < parser.getPeekPrecedence() {
+		infix := parser.infixParsingFunctions[parser.peekToken.Type]
+		if infix == nil {
+			return leftExpression
+		}
+
+		parser.nextToken()
+
+		leftExpression = infix(leftExpression)
+	}
+
+	return leftExpression
+}
+
 // Utils
 
 func (parser *Parser) isCurrentToken(token token.TokenType) bool {
