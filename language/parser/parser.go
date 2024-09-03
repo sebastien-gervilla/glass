@@ -140,6 +140,25 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 	// TODO: We're skipping the expressions until we
 	// encounter a semicolon
 	for !parser.isCurrentToken(token.SEMICOLON) {
+func (parser *Parser) parseBlockStatement() *ast.BlockStatement {
+	blockStatement := &ast.BlockStatement{
+		Token:      parser.currentToken,
+		Statements: []ast.Statement{},
+	}
+
+	parser.nextToken()
+	for !parser.isCurrentToken(token.RBRACE) && !parser.isCurrentToken(token.EOF) {
+		statement := parser.parseStatement()
+		if statement != nil {
+			blockStatement.Statements = append(blockStatement.Statements, statement)
+		}
+
+		parser.nextToken()
+	}
+
+	return blockStatement
+}
+
 		parser.nextToken()
 	}
 
