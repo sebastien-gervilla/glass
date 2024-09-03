@@ -17,7 +17,7 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 
 	// Statements
 	case *ast.Program:
-		return evaluateProgram(node)
+		return evaluateProgram(node, environment)
 
 	case *ast.LetStatement:
 		value := Evaluate(node.Expression, environment)
@@ -73,21 +73,43 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 		return evaluateInfixExpression(node.Operator, left, right)
 
 	case *ast.BlockStatement:
-		return evaluateBlockStatement(node)
+		return evaluateBlockStatement(node, environment)
 
 	case *ast.IfExpression:
-		return evaluateIfExpression(node)
+		return evaluateIfExpression(node, environment)
+
+	case *ast.Function:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{
+			Parameters:  params,
+			Environment: environment,
+			Body:        body,
+		}
+
+	case *ast.CallExpression:
+		function := Evaluate(node.Function, environment)
+		if isError(function) {
+			return function
+		}
+
+		arguments := evaluateExpressions(node.Arguments, environment)
+		if len(arguments) == 1 && isError(arguments[0]) {
+			return arguments[0]
+		}
+
+		return applyFunction(function, arguments)
 
 	}
 
 	return nil
 }
 
-func evaluateProgram(program *ast.Program) object.Object {
+func evaluateProgram(program *ast.Program, environment *object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range program.Statements {
-		result = Evaluate(statement)
+		result = Evaluate(statement, environment)
 
 		switch result := result.(type) {
 
@@ -103,11 +125,11 @@ func evaluateProgram(program *ast.Program) object.Object {
 	return result
 }
 
-func evaluateBlockStatement(blockStatement *ast.BlockStatement) object.Object {
+func evaluateBlockStatement(blockStatement *ast.BlockStatement, environment *object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range blockStatement.Statements {
-		result = Evaluate(statement)
+		result = Evaluate(statement, environment)
 
 		if result != nil {
 			resultType := result.GetType()
@@ -127,6 +149,20 @@ func evaluateIdentifier(identifier *ast.Identifier, environment *object.Environm
 	}
 
 	return value
+}
+
+func evaluateExpressions(expressions []ast.Expression, environment *object.Environment) []object.Object {
+	var result []object.Object
+	for _, expression := range expressions {
+		evaluated := Evaluate(expression, environment)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+
+		result = append(result, evaluated)
+	}
+
+	return result
 }
 
 func evaluatePrefixExpression(operator string, right object.Object) object.Object {
@@ -230,21 +266,48 @@ func evaluateIntegerInfixExpression(operator string, left object.Object, right o
 	}
 }
 
-func evaluateIfExpression(expression *ast.IfExpression) object.Object {
-	condition := Evaluate(expression.Condition)
+func evaluateIfExpression(expression *ast.IfExpression, environment *object.Environment) object.Object {
+	condition := Evaluate(expression.Condition, environment)
 	if isError(condition) {
 		return condition
 	}
 
 	if isTruthy(condition) {
-		return Evaluate(expression.Consequence)
+		return Evaluate(expression.Consequence, environment)
 	}
 
 	if expression.Alternative != nil {
-		return Evaluate(expression.Alternative)
+		return Evaluate(expression.Alternative, environment)
 	}
 
 	return NULL
+}
+
+func applyFunction(fn object.Object, arguments []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function: %s", function.GetType())
+	}
+
+	extendedEnvironment := extendFunctionEnvironment(function, arguments)
+	evaluated := Evaluate(function.Body, extendedEnvironment)
+	return unwrapReturnValue(evaluated)
+}
+
+func extendFunctionEnvironment(function *object.Function, arguments []object.Object) *object.Environment {
+	environment := object.NewEnclosedEnvironment(function.Environment)
+	for index, param := range function.Parameters {
+		environment.Set(param.Value, arguments[index])
+	}
+	return environment
+}
+func unwrapReturnValue(obj object.Object) object.Object {
+	returnValue, ok := obj.(*object.ReturnValue)
+	if ok {
+		return returnValue.Value
+	}
+
+	return obj
 }
 
 // Utils
