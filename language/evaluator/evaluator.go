@@ -144,11 +144,15 @@ func evaluateBlockStatement(blockStatement *ast.BlockStatement, environment *obj
 
 func evaluateIdentifier(identifier *ast.Identifier, environment *object.Environment) object.Object {
 	value, ok := environment.Get(identifier.Value)
-	if !ok {
-		return newError("identifier not found: " + identifier.Value)
+	if ok {
+		return value
 	}
 
-	return value
+	if builtin, ok := builtins[identifier.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: " + identifier.Value)
 }
 
 func evaluateExpressions(expressions []ast.Expression, environment *object.Environment) []object.Object {
@@ -284,14 +288,20 @@ func evaluateIfExpression(expression *ast.IfExpression, environment *object.Envi
 }
 
 func applyFunction(fn object.Object, arguments []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
-		return newError("not a function: %s", function.GetType())
-	}
+	switch function := fn.(type) {
 
-	extendedEnvironment := extendFunctionEnvironment(function, arguments)
-	evaluated := Evaluate(function.Body, extendedEnvironment)
-	return unwrapReturnValue(evaluated)
+	case *object.Function:
+		extendedEnvironment := extendFunctionEnvironment(function, arguments)
+		evaluated := Evaluate(function.Body, extendedEnvironment)
+		return unwrapReturnValue(evaluated)
+
+	case *object.Builtin:
+		return function.Function(arguments...)
+
+	default:
+		return newError("not a function: %s", fn.GetType())
+
+	}
 }
 
 func extendFunctionEnvironment(function *object.Function, arguments []object.Object) *object.Environment {
