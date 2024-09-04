@@ -167,7 +167,7 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	statement.Expression = parser.parseExpression(LOWEST)
 
-	for !parser.isPeekToken(token.SEMICOLON) {
+	for parser.isPeekToken(token.SEMICOLON) {
 		parser.nextToken()
 	}
 
