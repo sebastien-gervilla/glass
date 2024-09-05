@@ -11,6 +11,7 @@ type ObjectType string
 
 const (
 	INTEGER_OBJECT      = "INTEGER"
+	STRING_OBJECT       = "STRING"
 	BOOLEAN_OBJECT      = "BOOLEAN"
 	NULL_OBJECT         = "NULL"
 	RETURN_VALUE_OBJECT = "RETURN_VALUE"
@@ -65,13 +66,21 @@ func (environment *Environment) Set(name string, val Object) Object {
 	return val
 }
 
-// Integers
+// Integer
 type Integer struct {
 	Value int64
 }
 
 func (integer *Integer) GetType() ObjectType { return INTEGER_OBJECT }
 func (integer *Integer) Inspect() string     { return fmt.Sprintf("%d", integer.Value) }
+
+// String
+type String struct {
+	Value string
+}
+
+func (str *String) GetType() ObjectType { return STRING_OBJECT }
+func (str *String) Inspect() string     { return str.Value }
 
 // Boolean
 type Boolean struct {
