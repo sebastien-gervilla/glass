@@ -135,6 +135,16 @@ func (integer *IntegerLiteral) expressionNode()      {}
 func (integer *IntegerLiteral) TokenLiteral() string { return integer.Token.Literal }
 func (integer *IntegerLiteral) String() string       { return integer.Token.Literal }
 
+// String literal
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (literal *StringLiteral) expressionNode()      {}
+func (literal *StringLiteral) TokenLiteral() string { return literal.Token.Literal }
+func (literal *StringLiteral) String() string       { return literal.Token.Literal }
+
 // Prefix operator
 type PrefixExpression struct {
 	Token      token.Token

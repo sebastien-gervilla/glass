@@ -46,6 +46,11 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 			Value: node.Value,
 		}
 
+	case *ast.StringLiteral:
+		return &object.String{
+			Value: node.Value,
+		}
+
 	case *ast.Boolean:
 		return newBooleanObject(node.Value)
 
@@ -219,6 +224,9 @@ func evaluateInfixExpression(operator string, left object.Object, right object.O
 	case left.GetType() == object.INTEGER_OBJECT && right.GetType() == object.INTEGER_OBJECT:
 		return evaluateIntegerInfixExpression(operator, left, right)
 
+	case left.GetType() == object.STRING_OBJECT && right.GetType() == object.STRING_OBJECT:
+		return evaluateStringInfixExpression(operator, left, right)
+
 	case operator == "==":
 		return newBooleanObject(left == right)
 
@@ -268,6 +276,16 @@ func evaluateIntegerInfixExpression(operator string, left object.Object, right o
 		return newError("unknown operator: %s %s %s", left.GetType(), operator, right.GetType())
 
 	}
+}
+
+func evaluateStringInfixExpression(operator string, left object.Object, right object.Object) object.Object {
+	if operator != "+" {
+		return newError("unknown operator: %s %s %s", left.GetType(), operator, right.GetType())
+	}
+
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	return &object.String{Value: leftVal + rightVal}
 }
 
 func evaluateIfExpression(expression *ast.IfExpression, environment *object.Environment) object.Object {
