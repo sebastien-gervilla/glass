@@ -211,6 +211,11 @@ func (parser *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := parser.prefixParsingFunctions[parser.currentToken.Type]
 
 	if prefix == nil {
+		if parser.currentToken.Type == token.ILLEGAL {
+			parser.addIllegalTokenError(parser.currentToken)
+			return nil
+		}
+
 		message := fmt.Sprintf("no prefix parse function found for %q token", parser.currentToken.Type)
 		parser.errors = append(parser.errors, message)
 		return nil
@@ -442,7 +447,7 @@ func (parser *Parser) expectPeek(token token.TokenType) bool {
 		return true
 	}
 
-	parser.addParseError(token)
+	parser.addUnexepectedTokenError(parser.peekToken, parser.currentToken)
 	return false
 }
 
@@ -464,11 +469,29 @@ func (parser *Parser) getPeekPrecedence() int {
 	return precedence
 }
 
+// Errors
+
 func (parser *Parser) GetErrors() []string {
 	return parser.errors
 }
 
-func (parser *Parser) addParseError(token token.TokenType) {
-	message := fmt.Sprintf("expected next token to be %s, got %s instead", token, parser.peekToken.Type)
+func (parser *Parser) addUnexepectedTokenError(expected token.Token, unexpected token.Token) {
+	message := fmt.Sprintf(
+		"Expected token %s, got %s instead (l.%d:p.%d)",
+		expected.Type,
+		unexpected.Type,
+		unexpected.Line,
+		unexpected.Position,
+	)
+	parser.errors = append(parser.errors, message)
+}
+
+func (parser *Parser) addIllegalTokenError(token token.Token) {
+	message := fmt.Sprintf(
+		"Illegal token %q found (l.%d:p.%d)",
+		token.Literal,
+		token.Line,
+		token.Position,
+	)
 	parser.errors = append(parser.errors, message)
 }

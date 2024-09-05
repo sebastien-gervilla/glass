@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"glass/language/interpreter"
+	"glass/language/evaluator"
+	"glass/language/lexer"
 	"glass/language/object"
+	"glass/language/parser"
+	"log"
 	"os"
 )
 
@@ -17,16 +21,42 @@ func main() {
 	filename := os.Args[2]
 
 	if command == "run" {
-		// Your logic to interpret the file
-		code, err := os.ReadFile(filename)
 
-		if err != nil {
-			fmt.Println("Error reading file:", err)
+		// File handling
+		file, openError := os.Open(filename)
+		if openError != nil {
+			fmt.Println("Error reading file:", openError)
 			return
 		}
 
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		if !scanner.Scan() {
+			fmt.Println("File is empty.")
+		}
+
+		firstLine := scanner.Text()
+
+		// Interpreting
 		environment := object.NewEnvironment()
-		interpreter.Interpret(string(code), environment) // Replace with your interpreter's function
+		lexer := lexer.New(firstLine, func() string {
+			scanner.Scan()
+			return scanner.Text()
+		})
+
+		parser := parser.New(lexer)
+		program := parser.ParseProgram()
+
+		errors := parser.GetErrors()
+		if len(errors) > 0 {
+			for _, err := range errors {
+				log.Print(err)
+			}
+			return
+		}
+
+		evaluator.Evaluate(program, environment)
 	} else {
 		fmt.Println("Unknown command:", command)
 	}

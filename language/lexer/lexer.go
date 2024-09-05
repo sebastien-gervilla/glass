@@ -3,15 +3,19 @@ package lexer
 import token "glass/language/token"
 
 type Lexer struct {
-	input        string
+	line         string
+	lineNumber   int
 	position     int
 	readPosition int
 	character    byte
+	getNextLine  func() string
 }
 
-func New(input string) *Lexer {
+func New(line string, getNextLine func() string) *Lexer {
 	lexer := &Lexer{
-		input: input,
+		line:        line,
+		lineNumber:  1,
+		getNextLine: getNextLine,
 	}
 
 	lexer.readCharacter()
@@ -20,10 +24,19 @@ func New(input string) *Lexer {
 }
 
 func (lexer *Lexer) readCharacter() {
-	if lexer.readPosition >= len(lexer.input) {
-		lexer.character = 0
+	if lexer.readPosition >= len(lexer.line) {
+		nextLine := lexer.getNextLine()
+		if nextLine == "" {
+			lexer.character = 0
+		} else {
+			lexer.line = nextLine
+			lexer.lineNumber += 1
+			lexer.position = 0
+			lexer.readPosition = 0
+			lexer.character = lexer.line[lexer.readPosition]
+		}
 	} else {
-		lexer.character = lexer.input[lexer.readPosition]
+		lexer.character = lexer.line[lexer.readPosition]
 	}
 
 	lexer.position = lexer.readPosition
@@ -31,17 +44,22 @@ func (lexer *Lexer) readCharacter() {
 }
 
 func (lexer *Lexer) peekCharacter() byte {
-	if lexer.readPosition >= len(lexer.input) {
+	if lexer.readPosition >= len(lexer.line) {
 		return 0
 	}
 
-	return lexer.input[lexer.readPosition]
+	return lexer.line[lexer.readPosition]
 }
 
 func (lexer *Lexer) Next() token.Token {
-	var nextToken token.Token
 
 	lexer.skipWhitespace()
+
+	nextToken := token.Token{
+		Literal:  string(lexer.character),
+		Line:     lexer.lineNumber,
+		Position: lexer.position,
+	}
 
 	switch lexer.character {
 
@@ -49,55 +67,51 @@ func (lexer *Lexer) Next() token.Token {
 		if lexer.peekCharacter() == '=' {
 			// Advance to peeked character
 			lexer.readCharacter()
-			nextToken = token.Token{
-				Type:    token.EQUALS,
-				Literal: "==",
-			}
+			nextToken.Type = token.EQUALS
+			nextToken.Literal = "=="
 		} else {
-			nextToken = newToken(token.ASSIGN, lexer.character)
+			nextToken.Type = token.ASSIGN
 		}
 
 	case '!':
 		if lexer.peekCharacter() == '=' {
 			// Advance to peeked character
 			lexer.readCharacter()
-			nextToken = token.Token{
-				Type:    token.EQUALS,
-				Literal: "!=",
-			}
+			nextToken.Type = token.NOT_EQUALS
+			nextToken.Literal = "=="
 		} else {
-			nextToken = newToken(token.NOT, lexer.character)
+			nextToken.Type = token.NOT
 		}
 
 	case ';':
-		nextToken = newToken(token.SEMICOLON, lexer.character)
+		nextToken.Type = token.SEMICOLON
 
 	case '(':
-		nextToken = newToken(token.LPAREN, lexer.character)
+		nextToken.Type = token.LPAREN
 
 	case ')':
-		nextToken = newToken(token.RPAREN, lexer.character)
+		nextToken.Type = token.RPAREN
 
 	case ',':
-		nextToken = newToken(token.COMMA, lexer.character)
+		nextToken.Type = token.COMMA
 
 	case '+':
-		nextToken = newToken(token.PLUS, lexer.character)
+		nextToken.Type = token.PLUS
 
 	case '-':
-		nextToken = newToken(token.MINUS, lexer.character)
+		nextToken.Type = token.MINUS
 
 	case '{':
-		nextToken = newToken(token.LBRACE, lexer.character)
+		nextToken.Type = token.LBRACE
 
 	case '}':
-		nextToken = newToken(token.RBRACE, lexer.character)
+		nextToken.Type = token.RBRACE
 
 	case '/':
-		nextToken = newToken(token.SLASH, lexer.character)
+		nextToken.Type = token.SLASH
 
 	case '*':
-		nextToken = newToken(token.ASTERISK, lexer.character)
+		nextToken.Type = token.ASTERISK
 
 	case 0:
 		nextToken.Literal = ""
@@ -116,18 +130,11 @@ func (lexer *Lexer) Next() token.Token {
 			return nextToken
 		}
 
-		nextToken = newToken(token.ILLEGAL, lexer.character)
+		nextToken.Type = token.ILLEGAL
 	}
 
 	lexer.readCharacter()
 	return nextToken
-}
-
-func newToken(tokenType token.TokenType, character byte) token.Token {
-	return token.Token{
-		Type:    tokenType,
-		Literal: string(character),
-	}
 }
 
 func isValidCharacter(character byte) bool {
@@ -146,7 +153,7 @@ func (lexer *Lexer) readIdentifier() string {
 		lexer.readCharacter()
 	}
 
-	return lexer.input[position:lexer.position]
+	return lexer.line[position:lexer.position]
 }
 
 func (lexer *Lexer) readNumber() string {
@@ -155,7 +162,7 @@ func (lexer *Lexer) readNumber() string {
 		lexer.readCharacter()
 	}
 
-	return lexer.input[position:lexer.position]
+	return lexer.line[position:lexer.position]
 }
 
 func (lexer *Lexer) skipWhitespace() {

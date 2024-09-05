@@ -8,7 +8,7 @@ import (
 )
 
 func Interpret(code string, environment *object.Environment) []string {
-	lexer := lexer.New(code)
+	lexer := lexer.New(code, nil) // TODO: Rework
 	parser := parser.New(lexer)
 
 	program := parser.ParseProgram()
