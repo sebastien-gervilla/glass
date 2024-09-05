@@ -1,6 +1,8 @@
 package lexer
 
-import token "glass/language/token"
+import (
+	token "glass/language/token"
+)
 
 type Lexer struct {
 	line         string
@@ -113,6 +115,10 @@ func (lexer *Lexer) Next() token.Token {
 	case '*':
 		nextToken.Type = token.ASTERISK
 
+	case '"':
+		nextToken.Type = token.STRING
+		nextToken.Literal = lexer.readString()
+
 	case 0:
 		nextToken.Literal = ""
 		nextToken.Type = token.EOF
@@ -159,6 +165,17 @@ func (lexer *Lexer) readIdentifier() string {
 func (lexer *Lexer) readNumber() string {
 	position := lexer.position
 	for isDigit(lexer.character) {
+		lexer.readCharacter()
+	}
+
+	return lexer.line[position:lexer.position]
+}
+
+func (lexer *Lexer) readString() string {
+	position := lexer.position + 1
+
+	lexer.readCharacter()
+	for lexer.character != '"' {
 		lexer.readCharacter()
 	}
 
