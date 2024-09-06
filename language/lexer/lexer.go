@@ -10,10 +10,10 @@ type Lexer struct {
 	position     int
 	readPosition int
 	character    byte
-	getNextLine  func() string
+	getNextLine  func() (string, bool)
 }
 
-func New(line string, getNextLine func() string) *Lexer {
+func New(line string, getNextLine func() (string, bool)) *Lexer {
 	lexer := &Lexer{
 		line:        line,
 		lineNumber:  1,
@@ -27,16 +27,23 @@ func New(line string, getNextLine func() string) *Lexer {
 
 func (lexer *Lexer) readCharacter() {
 	if lexer.readPosition >= len(lexer.line) {
-		nextLine := lexer.getNextLine()
-		if nextLine == "" {
-			lexer.character = 0
-		} else {
-			lexer.line = nextLine
-			lexer.lineNumber += 1
-			lexer.position = 0
-			lexer.readPosition = 0
-			lexer.character = lexer.line[lexer.readPosition]
+		nextLine, isFileEnd := lexer.getNextLine()
+		lexer.lineNumber++
+
+		for nextLine == "" {
+			if isFileEnd {
+				lexer.character = 0
+				return
+			}
+
+			nextLine, isFileEnd = lexer.getNextLine()
+			lexer.lineNumber++
 		}
+
+		lexer.line = nextLine
+		lexer.position = 0
+		lexer.readPosition = 0
+		lexer.character = lexer.line[lexer.readPosition]
 	} else {
 		lexer.character = lexer.line[lexer.readPosition]
 	}

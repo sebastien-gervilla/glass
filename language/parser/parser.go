@@ -308,7 +308,7 @@ func (parser *Parser) parseGroupedExpression() ast.Expression {
 	expression := parser.parseExpression(LOWEST)
 
 	if !parser.expectPeek(token.RPAREN) {
-		return nil // TODO: Error
+		return nil
 	}
 
 	return expression
@@ -320,18 +320,18 @@ func (parser *Parser) parseIfExpression() ast.Expression {
 	}
 
 	if !parser.expectPeek(token.LPAREN) {
-		return nil // TODO: Error
+		return nil
 	}
 
 	parser.nextToken()
 	expression.Condition = parser.parseExpression(LOWEST)
 
 	if !parser.expectPeek(token.RPAREN) {
-		return nil // TODO: Error
+		return nil
 	}
 
 	if !parser.expectPeek(token.LBRACE) {
-		return nil // TODO: Error
+		return nil
 	}
 
 	expression.Consequence = parser.parseBlockStatement()
@@ -343,7 +343,7 @@ func (parser *Parser) parseIfExpression() ast.Expression {
 	// Parsing else expression
 	parser.nextToken()
 	if !parser.expectPeek(token.LBRACE) {
-		return nil // TODO: Error
+		return nil
 	}
 
 	expression.Alternative = parser.parseBlockStatement()
@@ -356,13 +356,13 @@ func (parser *Parser) parseFunction() ast.Expression {
 	}
 
 	if !parser.expectPeek(token.LPAREN) {
-		return nil // TODO: Errors
+		return nil
 	}
 
 	function.Parameters = parser.parseFunctionParameters()
 
 	if !parser.expectPeek(token.LBRACE) {
-		return nil // TODO: Errors
+		return nil
 	}
 
 	function.Body = parser.parseBlockStatement()
@@ -397,7 +397,7 @@ func (parser *Parser) parseFunctionParameters() []*ast.Identifier {
 	}
 
 	if !parser.expectPeek(token.RPAREN) {
-		return nil // TODO: Errors
+		return nil
 	}
 
 	return parameters
@@ -433,7 +433,7 @@ func (parser *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	if !parser.expectPeek(token.RPAREN) {
-		return nil // TODO: Errors
+		return nil
 	}
 
 	return arguments
