@@ -59,7 +59,10 @@ func main() {
 			return
 		}
 
-		evaluator.Evaluate(program, environment)
+		result := evaluator.Evaluate(program, environment)
+		if result != nil && result.GetType() == object.ERROR_OBJECT {
+			log.Fatal(result.Inspect())
+		}
 	} else {
 		fmt.Println("Unknown command:", command)
 	}
