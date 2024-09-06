@@ -40,9 +40,12 @@ func main() {
 
 		// Interpreting
 		environment := object.NewEnvironment()
-		lexer := lexer.New(firstLine, func() string {
-			scanner.Scan()
-			return scanner.Text()
+		lexer := lexer.New(firstLine, func() (string, bool) {
+			if !scanner.Scan() {
+				return "", true
+			}
+
+			return scanner.Text(), false
 		})
 
 		parser := parser.New(lexer)
