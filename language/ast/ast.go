@@ -266,3 +266,24 @@ func (expression *CallExpression) String() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
+
+// Array
+type ArrayLiteral struct {
+	Token    token.Token // LBRACKET '[' token
+	Elements []Expression
+}
+
+func (array *ArrayLiteral) expressionNode()      {}
+func (array *ArrayLiteral) TokenLiteral() string { return array.Token.Literal }
+func (array *ArrayLiteral) String() string {
+	var buffer bytes.Buffer
+	elements := []string{}
+	for _, element := range array.Elements {
+		elements = append(elements, element.String())
+	}
+
+	buffer.WriteString("[")
+	buffer.WriteString(strings.Join(elements, ", "))
+	buffer.WriteString("]")
+	return buffer.String()
+}
