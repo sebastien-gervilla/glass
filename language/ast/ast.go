@@ -287,3 +287,22 @@ func (array *ArrayLiteral) String() string {
 	buffer.WriteString("]")
 	return buffer.String()
 }
+
+// Index
+type IndexExpression struct {
+	Token token.Token // LBRACKET '[' token
+	Left  Expression
+	Index Expression
+}
+
+func (expression *IndexExpression) expressionNode()      {}
+func (expression *IndexExpression) TokenLiteral() string { return expression.Token.Literal }
+func (expression *IndexExpression) String() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	buffer.WriteString(expression.Left.String())
+	buffer.WriteString("[")
+	buffer.WriteString(expression.Index.String())
+	buffer.WriteString("])")
+	return buffer.String()
+}
