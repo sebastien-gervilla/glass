@@ -451,6 +451,22 @@ func (parser *Parser) parseExpressions(pairType token.TokenType) []ast.Expressio
 	return expressions
 }
 
+func (parser *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	expression := &ast.IndexExpression{
+		Token: parser.currentToken,
+		Left:  left,
+	}
+
+	parser.nextToken()
+	expression.Index = parser.parseExpression(LOWEST)
+
+	if !parser.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return expression
+}
+
 // Utils
 
 func (parser *Parser) isCurrentToken(token token.TokenType) bool {
@@ -514,20 +530,4 @@ func (parser *Parser) addIllegalTokenError(token token.Token) {
 		token.Position,
 	)
 	parser.errors = append(parser.errors, message)
-}
-
-func (parser *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
-	expression := &ast.IndexExpression{
-		Token: parser.currentToken,
-		Left:  left,
-	}
-
-	parser.nextToken()
-	expression.Index = parser.parseExpression(LOWEST)
-
-	if parser.expectPeek(token.RBRACKET) {
-		return nil
-	}
-
-	return expression
 }
