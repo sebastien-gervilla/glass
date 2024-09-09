@@ -16,6 +16,7 @@ const (
 	NULL_OBJECT         = "NULL"
 	RETURN_VALUE_OBJECT = "RETURN_VALUE"
 	ERROR_OBJECT        = "ERROR"
+	ARRAY_OBJECT        = "ARRAY"
 	FUNCTION_OBJECT     = "FUNCTION"
 	BUILTIN_OBJECT      = "BUILTIN"
 )
@@ -35,27 +36,27 @@ func (e *Error) Inspect() string     { return "ERROR: " + e.Message }
 
 // Environment
 type Environment struct {
-	store map[string]Object
-	outer *Environment
+	store    map[string]Object
+	bufferer *Environment
 }
 
 func NewEnvironment() *Environment {
 	store := make(map[string]Object)
-	return &Environment{store: store, outer: nil}
+	return &Environment{store: store, bufferer: nil}
 }
 
-func NewEnclosedEnvironment(outer *Environment) *Environment {
+func NewEnclosedEnvironment(bufferer *Environment) *Environment {
 	environment := NewEnvironment()
-	environment.outer = outer
+	environment.bufferer = bufferer
 	return environment
 }
 
 func (environment *Environment) Get(name string) (Object, bool) {
 	obj, ok := environment.store[name]
 
-	// Reach for outer variables
-	if !ok && environment.outer != nil {
-		obj, ok = environment.outer.Get(name)
+	// Reach for bufferer variables
+	if !ok && environment.bufferer != nil {
+		obj, ok = environment.bufferer.Get(name)
 	}
 
 	return obj, ok
@@ -136,3 +137,22 @@ type Builtin struct {
 
 func (builtin *Builtin) GetType() ObjectType { return BUILTIN_OBJECT }
 func (builtin *Builtin) Inspect() string     { return "builtin function" }
+
+// Array
+type Array struct {
+	Elements []Object
+}
+
+func (array *Array) GetType() ObjectType { return ARRAY_OBJECT }
+func (array *Array) Inspect() string {
+	var buffer bytes.Buffer
+	elements := []string{}
+	for _, element := range array.Elements {
+		elements = append(elements, element.Inspect())
+	}
+
+	buffer.WriteString("[")
+	buffer.WriteString(strings.Join(elements, ", "))
+	buffer.WriteString("]")
+	return buffer.String()
+}
