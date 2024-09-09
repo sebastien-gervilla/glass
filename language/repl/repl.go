@@ -24,7 +24,7 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 		line := scanner.Text()
-		lexer := lexer.New(line)
+		lexer := lexer.New(line, nil) // TODO: Rework this
 		parser := parser.New(lexer)
 
 		program := parser.ParseProgram()

@@ -3,8 +3,10 @@ package token
 type TokenType string
 
 type Token struct {
-	Type    TokenType
-	Literal string
+	Type     TokenType
+	Literal  string
+	Line     int
+	Position int
 }
 
 var keywords = map[string]TokenType{
@@ -25,6 +27,7 @@ const (
 	// Identifiers + literals
 	IDENTIFIER = "IDENTIFIER"
 	INT        = "INT"
+	STRING     = "STRING"
 
 	// Operators
 	ASSIGN       = "="
@@ -45,6 +48,8 @@ const (
 	RPAREN    = ")"
 	LBRACE    = "{"
 	RBRACE    = "}"
+	LBRACKET  = "["
+	RBRACKET  = "]"
 
 	// Keywords
 	LET      = "LET"
