@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"glass/language/ast"
+	"hash/fnv"
 	"strings"
 )
 
@@ -17,6 +18,7 @@ const (
 	RETURN_VALUE_OBJECT = "RETURN_VALUE"
 	ERROR_OBJECT        = "ERROR"
 	ARRAY_OBJECT        = "ARRAY"
+	HASH_OBJECT         = "HASH"
 	FUNCTION_OBJECT     = "FUNCTION"
 	BUILTIN_OBJECT      = "BUILTIN"
 )
@@ -154,5 +156,77 @@ func (array *Array) Inspect() string {
 	buffer.WriteString("[")
 	buffer.WriteString(strings.Join(elements, ", "))
 	buffer.WriteString("]")
+	return buffer.String()
+}
+
+// Hash
+type Hashable interface {
+	HashKey() HashKey
+}
+
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+func (boolean *Boolean) HashKey() HashKey {
+	var value uint64
+
+	if boolean.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+
+	return HashKey{
+		Type:  boolean.GetType(),
+		Value: value,
+	}
+}
+
+func (integer *Integer) HashKey() HashKey {
+	return HashKey{
+		Type:  integer.GetType(),
+		Value: uint64(integer.Value),
+	}
+}
+
+func (str *String) HashKey() HashKey {
+	hash := fnv.New64a()
+	hash.Write([]byte(str.Value))
+
+	return HashKey{
+		Type:  str.GetType(),
+		Value: hash.Sum64(),
+	}
+}
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (hash *Hash) GetType() ObjectType { return HASH_OBJECT }
+func (hash *Hash) Inspect() string {
+	var buffer bytes.Buffer
+	pairs := []string{}
+	for _, pair := range hash.Pairs {
+		pairs = append(
+			pairs,
+			fmt.Sprintf(
+				"%s: %s",
+				pair.Key.Inspect(),
+				pair.Value.Inspect(),
+			),
+		)
+	}
+
+	buffer.WriteString("{")
+	buffer.WriteString(strings.Join(pairs, ", "))
+	buffer.WriteString("}")
 	return buffer.String()
 }

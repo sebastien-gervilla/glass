@@ -122,6 +122,9 @@ func (lexer *Lexer) Next() token.Token {
 	case ']':
 		nextToken.Type = token.RBRACKET
 
+	case ':':
+		nextToken.Type = token.COLON
+
 	case '/':
 		nextToken.Type = token.SLASH
 

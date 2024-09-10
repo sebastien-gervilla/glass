@@ -65,6 +65,9 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 
 		return &object.Array{Elements: elements}
 
+	case *ast.HashLiteral:
+		return evaluateHashLiteral(node, environment)
+
 	case *ast.PrefixExpression:
 		right := Evaluate(node.Expression, environment)
 		if isError(right) {
@@ -365,6 +368,9 @@ func evaluateIndexExpression(left object.Object, index object.Object) object.Obj
 	case left.GetType() == object.ARRAY_OBJECT && index.GetType() == object.INTEGER_OBJECT:
 		return evaluateArrayIndexExpression(left, index)
 
+	case left.GetType() == object.HASH_OBJECT:
+		return evaluateHashIndexExpression(left, index)
+
 	default:
 		return newError("index operator not supported: %s", left.GetType())
 
@@ -381,6 +387,51 @@ func evaluateArrayIndexExpression(array object.Object, index object.Object) obje
 	}
 
 	return arrayObject.Elements[arrayIndex]
+}
+
+func evaluateHashLiteral(hash *ast.HashLiteral, environment *object.Environment) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+
+	for keyExpression, valueExpression := range hash.Pairs {
+		key := Evaluate(keyExpression, environment)
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", key.GetType())
+		}
+
+		value := Evaluate(valueExpression, environment)
+		if isError(value) {
+			return value
+		}
+
+		hashed := hashKey.HashKey()
+		pairs[hashed] = object.HashPair{
+			Key:   key,
+			Value: value,
+		}
+	}
+
+	return &object.Hash{Pairs: pairs}
+}
+
+func evaluateHashIndexExpression(hash object.Object, index object.Object) object.Object {
+	hashObject := hash.(*object.Hash)
+
+	key, ok := index.(object.Hashable)
+	if !ok {
+		return newError("unusable as hash key: %s", index.GetType())
+	}
+
+	pair, ok := hashObject.Pairs[key.HashKey()]
+	if !ok {
+		return NULL
+	}
+
+	return pair.Value
 }
 
 // Utils
