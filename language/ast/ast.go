@@ -306,3 +306,24 @@ func (expression *IndexExpression) String() string {
 	buffer.WriteString("])")
 	return buffer.String()
 }
+
+// Hash
+type HashLiteral struct {
+	Token token.Token // LBRACE '{' token
+	Pairs map[Expression]Expression
+}
+
+func (hash *HashLiteral) expressionNode()      {}
+func (hash *HashLiteral) TokenLiteral() string { return hash.Token.Literal }
+func (hash *HashLiteral) String() string {
+	var buffer bytes.Buffer
+	pairs := []string{}
+	for key, value := range hash.Pairs {
+		pairs = append(pairs, key.String()+":"+value.String())
+	}
+
+	buffer.WriteString("{")
+	buffer.WriteString(strings.Join(pairs, ", "))
+	buffer.WriteString("}")
+	return buffer.String()
+}

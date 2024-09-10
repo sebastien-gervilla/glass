@@ -67,6 +67,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	parser.registerPrefix(token.FUNCTION, parser.parseFunction)
 	parser.registerPrefix(token.STRING, parser.parseStringLiteral)
 	parser.registerPrefix(token.LBRACKET, parser.parseArrayLiteral)
+	parser.registerPrefix(token.LBRACE, parser.parseHashLiteral)
 
 	// Registering infixes
 	parser.infixParsingFunctions = make(map[token.TokenType]infixParsingFunction)
@@ -467,6 +468,35 @@ func (parser *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+func (parser *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{
+		Token: parser.currentToken,
+		Pairs: make(map[ast.Expression]ast.Expression),
+	}
+
+	for !parser.isPeekToken(token.RBRACE) {
+		parser.nextToken()
+		key := parser.parseExpression(LOWEST)
+
+		if !parser.isPeekToken(token.COLON) {
+			hash.Pairs[key] = key
+		} else {
+			parser.nextToken()
+			parser.nextToken()
+
+			value := parser.parseExpression(LOWEST)
+			hash.Pairs[key] = value
+		}
+
+		if !parser.isPeekToken(token.RBRACE) && !parser.isPeekToken(token.COMMA) {
+			parser.addUnexepectedTokenError(token.COMMA, parser.currentToken)
+			return nil
+		}
+	}
+
+	return hash
+}
+
 // Utils
 
 func (parser *Parser) isCurrentToken(token token.TokenType) bool {
@@ -483,7 +513,7 @@ func (parser *Parser) expectPeek(token token.TokenType) bool {
 		return true
 	}
 
-	parser.addUnexepectedTokenError(parser.peekToken, parser.currentToken)
+	parser.addUnexepectedTokenError(parser.peekToken.Type, parser.currentToken)
 	return false
 }
 
@@ -511,10 +541,10 @@ func (parser *Parser) GetErrors() []string {
 	return parser.errors
 }
 
-func (parser *Parser) addUnexepectedTokenError(expected token.Token, unexpected token.Token) {
+func (parser *Parser) addUnexepectedTokenError(expectedType token.TokenType, unexpected token.Token) {
 	message := fmt.Sprintf(
 		"Expected token %s, got %s instead (l.%d:p.%d)",
-		expected.Type,
+		expectedType,
 		unexpected.Type,
 		unexpected.Line,
 		unexpected.Position,
