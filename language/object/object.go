@@ -11,16 +11,16 @@ import (
 type ObjectType string
 
 const (
-	INTEGER_OBJECT      = "INTEGER"
-	STRING_OBJECT       = "STRING"
-	BOOLEAN_OBJECT      = "BOOLEAN"
-	NULL_OBJECT         = "NULL"
-	RETURN_VALUE_OBJECT = "RETURN_VALUE"
-	ERROR_OBJECT        = "ERROR"
-	ARRAY_OBJECT        = "ARRAY"
-	HASH_OBJECT         = "HASH"
-	FUNCTION_OBJECT     = "FUNCTION"
-	BUILTIN_OBJECT      = "BUILTIN"
+	INTEGER_OBJECT         = "INTEGER"
+	STRING_OBJECT          = "STRING"
+	BOOLEAN_OBJECT         = "BOOLEAN"
+	NULL_OBJECT            = "NULL"
+	RETURN_VALUE_OBJECT    = "RETURN_VALUE"
+	ERROR_OBJECT           = "ERROR"
+	ARRAY_OBJECT           = "ARRAY"
+	HASH_OBJECT            = "HASH"
+	FUNCTION_OBJECT        = "FUNCTION"
+	BUILTIN_OBJECT         = "BUILTIN"
 )
 
 type Object interface {
@@ -35,39 +35,6 @@ type Error struct {
 
 func (e *Error) GetType() ObjectType { return ERROR_OBJECT }
 func (e *Error) Inspect() string     { return "ERROR: " + e.Message }
-
-// Environment
-type Environment struct {
-	store    map[string]Object
-	bufferer *Environment
-}
-
-func NewEnvironment() *Environment {
-	store := make(map[string]Object)
-	return &Environment{store: store, bufferer: nil}
-}
-
-func NewEnclosedEnvironment(bufferer *Environment) *Environment {
-	environment := NewEnvironment()
-	environment.bufferer = bufferer
-	return environment
-}
-
-func (environment *Environment) Get(name string) (Object, bool) {
-	obj, ok := environment.store[name]
-
-	// Reach for bufferer variables
-	if !ok && environment.bufferer != nil {
-		obj, ok = environment.bufferer.Get(name)
-	}
-
-	return obj, ok
-}
-
-func (environment *Environment) Set(name string, val Object) Object {
-	environment.store[name] = val
-	return val
-}
 
 // Integer
 type Integer struct {
