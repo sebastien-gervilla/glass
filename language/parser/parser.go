@@ -129,6 +129,12 @@ func (parser *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return parser.parseReturnStatement()
 
+	case token.IMPORT:
+		return parser.parseImportStatement()
+
+	case token.EXPORT:
+		return parser.parseExportStatement()
+
 	default:
 		return parser.parseExpressionStatement()
 
@@ -175,6 +181,54 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	for parser.isPeekToken(token.SEMICOLON) {
 		parser.nextToken()
+	}
+
+	return statement
+}
+
+func (parser *Parser) parseImportStatement() *ast.ImportStatement {
+
+	if !parser.expectPeek(token.IDENTIFIER) {
+		return nil
+	}
+
+	statement := &ast.ImportStatement{
+		Token: parser.currentToken,
+		Identifier: &ast.Identifier{
+			Token: parser.currentToken,
+			Value: parser.currentToken.Literal,
+		},
+	}
+
+	if !parser.expectPeek(token.STRING) {
+		return nil
+	}
+
+	statement.Path = parser.currentToken.Literal
+
+	if !parser.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	return statement
+}
+
+func (parser *Parser) parseExportStatement() *ast.ExportStatement {
+	statement := &ast.ExportStatement{
+		Token: parser.currentToken,
+	}
+
+	if !parser.expectPeek(token.IDENTIFIER) {
+		return nil
+	}
+
+	statement.Identifier = &ast.Identifier{
+		Token: parser.currentToken,
+		Value: parser.currentToken.Literal,
+	}
+
+	if !parser.expectPeek(token.SEMICOLON) {
+		return nil
 	}
 
 	return statement

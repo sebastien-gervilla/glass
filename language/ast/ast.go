@@ -125,6 +125,31 @@ func (statement *BlockStatement) String() string {
 	return buffer.String()
 }
 
+// Import statement
+type ImportStatement struct {
+	Token      token.Token
+	Identifier *Identifier
+	Path       string
+}
+
+func (statement *ImportStatement) statementNode()       {}
+func (statement *ImportStatement) TokenLiteral() string { return statement.Token.Literal }
+func (statement *ImportStatement) String() string {
+	return "import " + statement.Identifier.Value + " " + statement.Path
+}
+
+// Export statement
+type ExportStatement struct {
+	Token      token.Token
+	Identifier *Identifier
+}
+
+func (statement *ExportStatement) statementNode()       {}
+func (statement *ExportStatement) TokenLiteral() string { return statement.Token.Literal }
+func (statement *ExportStatement) String() string {
+	return "export " + statement.Identifier.String()
+}
+
 // Integer literal
 type IntegerLiteral struct {
 	Token token.Token
