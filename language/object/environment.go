@@ -4,12 +4,14 @@ type Module (map[string]Object)
 
 // Program environment
 type ProgramEnvironment struct {
-	modules map[string]Module
+	modules      map[string]Module
+	RunDirectory string
 }
 
-func NewProgramEnvironment() *ProgramEnvironment {
+func NewProgramEnvironment(runDirectory string) *ProgramEnvironment {
 	return &ProgramEnvironment{
-		modules: make(map[string]Module),
+		modules:      make(map[string]Module),
+		RunDirectory: runDirectory,
 	}
 }
 

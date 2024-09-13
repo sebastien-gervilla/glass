@@ -6,7 +6,6 @@ import (
 	"glass/language/object"
 	"glass/language/parser"
 	"log"
-	"os"
 	"path"
 )
 
@@ -185,12 +184,8 @@ func evaluateBlockStatement(blockStatement *ast.BlockStatement, environment *obj
 }
 
 func evaluateImportStatement(importStatement *ast.ImportStatement, environment *object.Environment) object.Object {
-	currentDirectory, getError := os.Getwd()
-	if getError != nil {
-		panic(getError)
-	}
 
-	filepath := path.Join(currentDirectory, importStatement.Path)
+	filepath := path.Join(environment.ProgramEnvironment.RunDirectory, importStatement.Path)
 
 	program := parser.GetParsedFile(filepath)
 
@@ -521,7 +516,7 @@ func evaluateImportAccessExpression(
 		identifier := accessed.Function.(*ast.Identifier)
 		function, ok := environment.GetModuleValue(importObject.Path, identifier.Value)
 		if !ok {
-			return newError("Couldn't imported : %s", identifier.Value)
+			return newError("Couldn't find '%s' from file : %s", identifier.Value, importObject.Path)
 		}
 
 		arguments := evaluateExpressions(accessed.Arguments, environment)
