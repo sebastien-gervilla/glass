@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"glass/language/ast"
 	"glass/language/object"
+	"glass/language/parser"
+	"log"
+	"os"
+	"path"
 )
 
 var (
@@ -39,6 +43,12 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 		return &object.ReturnValue{
 			Value: Evaluate(node.Expression, environment),
 		}
+
+	case *ast.ImportStatement:
+		evaluateImportStatement(node, environment)
+
+	case *ast.ExportStatement:
+		evaluateExportStatement(node, environment)
 
 	// Expressions
 	case *ast.IntegerLiteral:
@@ -171,7 +181,51 @@ func evaluateBlockStatement(blockStatement *ast.BlockStatement, environment *obj
 	return result
 }
 
-func evaluateIdentifier(identifier *ast.Identifier, environment *object.Environment) object.Object {
+func evaluateImportStatement(importStatement *ast.ImportStatement, environment *object.Environment) object.Object {
+	currentDirectory, getError := os.Getwd()
+	if getError != nil {
+		panic(getError)
+	}
+
+	filepath := path.Join(currentDirectory, importStatement.Path)
+
+	program := parser.GetParsedFile(filepath)
+
+	if !environment.ProgramEnvironment.IsModuleEvaluated(filepath) {
+		moduleEnvironment := object.NewEnvironment(filepath, environment.ProgramEnvironment)
+		moduleEnvironment.ProgramEnvironment.RegisterModule(filepath)
+
+		result := Evaluate(program, moduleEnvironment)
+
+		if result != nil && result.GetType() == object.ERROR_OBJECT {
+			log.Fatal(result.Inspect())
+		}
+
+	}
+
+	environment.Set(importStatement.Identifier.Value, &object.Import{
+		Path: filepath,
+	})
+
+	return nil
+}
+
+func evaluateExportStatement(statement *ast.ExportStatement, environment *object.Environment) object.Object {
+
+	identifierObject := evaluateIdentifier(statement.Identifier, environment)
+
+	environment.Export(
+		statement.Identifier.Value,
+		identifierObject,
+	)
+
+	return identifierObject
+}
+
+func evaluateIdentifier(
+	identifier *ast.Identifier,
+	environment *object.Environment,
+) object.Object {
 	value, ok := environment.Get(identifier.Value)
 	if ok {
 		return value

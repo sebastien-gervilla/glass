@@ -11,16 +11,17 @@ import (
 type ObjectType string
 
 const (
-	INTEGER_OBJECT         = "INTEGER"
-	STRING_OBJECT          = "STRING"
-	BOOLEAN_OBJECT         = "BOOLEAN"
-	NULL_OBJECT            = "NULL"
-	RETURN_VALUE_OBJECT    = "RETURN_VALUE"
-	ERROR_OBJECT           = "ERROR"
-	ARRAY_OBJECT           = "ARRAY"
-	HASH_OBJECT            = "HASH"
-	FUNCTION_OBJECT        = "FUNCTION"
-	BUILTIN_OBJECT         = "BUILTIN"
+	INTEGER_OBJECT      = "INTEGER"
+	STRING_OBJECT       = "STRING"
+	BOOLEAN_OBJECT      = "BOOLEAN"
+	NULL_OBJECT         = "NULL"
+	RETURN_VALUE_OBJECT = "RETURN_VALUE"
+	ERROR_OBJECT        = "ERROR"
+	ARRAY_OBJECT        = "ARRAY"
+	HASH_OBJECT         = "HASH"
+	FUNCTION_OBJECT     = "FUNCTION"
+	BUILTIN_OBJECT      = "BUILTIN"
+	IMPORT_OBJECT       = "IMPORT"
 )
 
 type Object interface {
@@ -197,3 +198,11 @@ func (hash *Hash) Inspect() string {
 	buffer.WriteString("}")
 	return buffer.String()
 }
+
+// Module path
+type Import struct {
+	Path string
+}
+
+func (accessor *Import) GetType() ObjectType { return IMPORT_OBJECT }
+func (accessor *Import) Inspect() string     { return accessor.Path }
