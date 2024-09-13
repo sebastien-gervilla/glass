@@ -117,6 +117,9 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 
 		return evaluateIndexExpression(left, index)
 
+	case *ast.AccessExpression:
+		return evaluateAccessExpression(node, environment)
+
 	case *ast.Function:
 		params := node.Parameters
 		body := node.Body
@@ -486,6 +489,52 @@ func evaluateHashIndexExpression(hash object.Object, index object.Object) object
 	}
 
 	return pair.Value
+}
+
+func evaluateAccessExpression(expression *ast.AccessExpression, environment *object.Environment) object.Object {
+	accessor := Evaluate(expression.Accessor, environment)
+	if isError(accessor) {
+		return accessor
+	}
+
+	switch {
+
+	case accessor.GetType() == object.IMPORT_OBJECT:
+		return evaluateImportAccessExpression(accessor, expression.Accessed, environment)
+
+	default:
+		return newError("unsuported access type %s", accessor.GetType())
+
+	}
+}
+
+func evaluateImportAccessExpression(
+	accessor object.Object,
+	accessed ast.Expression,
+	environment *object.Environment,
+) object.Object {
+	importObject := accessor.(*object.Import)
+
+	switch accessed := accessed.(type) {
+
+	case *ast.CallExpression:
+		identifier := accessed.Function.(*ast.Identifier)
+		function, ok := environment.GetModuleValue(importObject.Path, identifier.Value)
+		if !ok {
+			return newError("Couldn't imported : %s", identifier.Value)
+		}
+
+		arguments := evaluateExpressions(accessed.Arguments, environment)
+		if len(arguments) == 1 && isError(arguments[0]) {
+			return arguments[0]
+		}
+
+		return applyFunction(function, arguments)
+
+	default:
+		return newError("Import access not supported for : %s", accessed.String())
+
+	}
 }
 
 // Utils
