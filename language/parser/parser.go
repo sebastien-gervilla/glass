@@ -17,7 +17,8 @@ const (
 	PRODUCT     // *
 	PREFIX      // -expression or !expression
 	CALL        // myFunction(expression, expression)
-	INDEX       // array[indexs]
+	INDEX       // array[index]
+	ACCESS      // imported.value
 )
 
 var precedences = map[token.TokenType]int{
@@ -31,6 +32,7 @@ var precedences = map[token.TokenType]int{
 	token.ASTERISK:     PRODUCT,
 	token.LPAREN:       CALL,
 	token.LBRACKET:     INDEX,
+	token.DOT:          ACCESS,
 }
 
 type (
@@ -81,6 +83,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	parser.registerInfix(token.ASTERISK, parser.parseInfixExpression)
 	parser.registerInfix(token.LPAREN, parser.parseCallExpression)
 	parser.registerInfix(token.LBRACKET, parser.parseIndexExpression)
+	parser.registerInfix(token.DOT, parser.parseAccessExpression)
 
 	// Read two tokens, so currentToken and peekToken are both set
 	parser.nextToken()
@@ -549,6 +552,19 @@ func (parser *Parser) parseHashLiteral() ast.Expression {
 	}
 
 	return hash
+}
+
+func (parser *Parser) parseAccessExpression(accessor ast.Expression) ast.Expression {
+	expression := &ast.AccessExpression{
+		Token:    parser.currentToken,
+		Accessor: accessor,
+	}
+
+	parser.nextToken()
+
+	expression.Accessed = parser.parseExpression(LOWEST)
+
+	return expression
 }
 
 // Utils

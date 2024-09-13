@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	token "glass/language/token"
 	"strings"
 )
@@ -351,4 +352,21 @@ func (hash *HashLiteral) String() string {
 	buffer.WriteString(strings.Join(pairs, ", "))
 	buffer.WriteString("}")
 	return buffer.String()
+}
+
+// Access
+type AccessExpression struct {
+	Token    token.Token
+	Accessor Expression
+	Accessed Expression
+}
+
+func (expression *AccessExpression) expressionNode()      {}
+func (expression *AccessExpression) TokenLiteral() string { return expression.Token.Literal }
+func (expression *AccessExpression) String() string {
+	return fmt.Sprintf(
+		"(%s).(%s)",
+		expression.Accessor.String(),
+		expression.Accessed.String(),
+	)
 }
