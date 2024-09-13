@@ -583,7 +583,8 @@ func (parser *Parser) expectPeek(token token.TokenType) bool {
 		return true
 	}
 
-	parser.addUnexepectedTokenError(parser.peekToken.Type, parser.currentToken)
+	parser.addUnexepectedTokenError(token, parser.currentToken)
+	parser.nextToken()
 	return false
 }
 
