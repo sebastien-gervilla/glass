@@ -39,7 +39,8 @@ func main() {
 		firstLine := scanner.Text()
 
 		// Interpreting
-		environment := object.NewEnvironment()
+		programEnvironment := object.NewProgramEnvironment()
+		moduleEnvironment := object.NewEnvironment(filename, programEnvironment)
 		lexer := lexer.New(firstLine, func() (string, bool) {
 			if !scanner.Scan() {
 				return "", true
@@ -59,7 +60,7 @@ func main() {
 			return
 		}
 
-		result := evaluator.Evaluate(program, environment)
+		result := evaluator.Evaluate(program, moduleEnvironment)
 		if result != nil && result.GetType() == object.ERROR_OBJECT {
 			log.Fatal(result.Inspect())
 		}
