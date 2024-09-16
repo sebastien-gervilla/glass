@@ -10,13 +10,15 @@ type Token struct {
 }
 
 var keywords = map[string]TokenType{
-	"let":      LET,
-	"function": FUNCTION,
-	"return":   RETURN,
-	"true":     TRUE,
-	"false":    FALSE,
-	"if":       IF,
-	"else":     ELSE,
+	"let":    LET,
+	"fn":     FUNCTION,
+	"return": RETURN,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"import": IMPORT,
+	"export": EXPORT,
 }
 
 const (
@@ -42,6 +44,7 @@ const (
 	NOT          = "!"
 
 	// Delimiters
+	DOT       = "."
 	COMMA     = ","
 	SEMICOLON = ";"
 	COLON     = ":"
@@ -60,6 +63,8 @@ const (
 	RETURN   = "RETURN"
 	TRUE     = "TRUE"
 	FALSE    = "FALSE"
+	IMPORT   = "IMPORT"
+	EXPORT   = "EXPORT"
 )
 
 func LookupIdentifier(identifier string) TokenType {

@@ -101,6 +101,9 @@ func (lexer *Lexer) Next() token.Token {
 	case ')':
 		nextToken.Type = token.RPAREN
 
+	case '.':
+		nextToken.Type = token.DOT
+
 	case ',':
 		nextToken.Type = token.COMMA
 

@@ -9,23 +9,32 @@ import (
 	"glass/language/parser"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: glass run <filename>")
+		fmt.Println("Usage: glass <command> <filename>")
 		return
 	}
 
 	command := os.Args[1]
 	filename := os.Args[2]
 
+	fullpath, absError := filepath.Abs(filename)
+	if absError != nil {
+		log.Fatal("Error getting absolute path:", absError)
+		return
+	}
+
+	runDirectory := filepath.Dir(fullpath)
+
 	if command == "run" {
 
 		// File handling
 		file, openError := os.Open(filename)
 		if openError != nil {
-			fmt.Println("Error reading file:", openError)
+			log.Fatal("Error reading file:", openError)
 			return
 		}
 
@@ -39,7 +48,8 @@ func main() {
 		firstLine := scanner.Text()
 
 		// Interpreting
-		environment := object.NewEnvironment()
+		programEnvironment := object.NewProgramEnvironment(runDirectory)
+		moduleEnvironment := object.NewEnvironment(filename, programEnvironment)
 		lexer := lexer.New(firstLine, func() (string, bool) {
 			if !scanner.Scan() {
 				return "", true
@@ -59,7 +69,7 @@ func main() {
 			return
 		}
 
-		result := evaluator.Evaluate(program, environment)
+		result := evaluator.Evaluate(program, moduleEnvironment)
 		if result != nil && result.GetType() == object.ERROR_OBJECT {
 			log.Fatal(result.Inspect())
 		}

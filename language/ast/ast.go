@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	token "glass/language/token"
 	"strings"
 )
@@ -123,6 +124,31 @@ func (statement *BlockStatement) String() string {
 		buffer.WriteString(statement.String())
 	}
 	return buffer.String()
+}
+
+// Import statement
+type ImportStatement struct {
+	Token      token.Token
+	Identifier *Identifier
+	Path       string
+}
+
+func (statement *ImportStatement) statementNode()       {}
+func (statement *ImportStatement) TokenLiteral() string { return statement.Token.Literal }
+func (statement *ImportStatement) String() string {
+	return "import " + statement.Identifier.Value + " " + statement.Path
+}
+
+// Export statement
+type ExportStatement struct {
+	Token      token.Token
+	Identifier *Identifier
+}
+
+func (statement *ExportStatement) statementNode()       {}
+func (statement *ExportStatement) TokenLiteral() string { return statement.Token.Literal }
+func (statement *ExportStatement) String() string {
+	return "export " + statement.Identifier.String()
 }
 
 // Integer literal
@@ -326,4 +352,21 @@ func (hash *HashLiteral) String() string {
 	buffer.WriteString(strings.Join(pairs, ", "))
 	buffer.WriteString("}")
 	return buffer.String()
+}
+
+// Access
+type AccessExpression struct {
+	Token    token.Token
+	Accessor Expression
+	Accessed Expression
+}
+
+func (expression *AccessExpression) expressionNode()      {}
+func (expression *AccessExpression) TokenLiteral() string { return expression.Token.Literal }
+func (expression *AccessExpression) String() string {
+	return fmt.Sprintf(
+		"(%s).(%s)",
+		expression.Accessor.String(),
+		expression.Accessed.String(),
+	)
 }

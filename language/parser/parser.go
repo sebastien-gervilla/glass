@@ -17,7 +17,8 @@ const (
 	PRODUCT     // *
 	PREFIX      // -expression or !expression
 	CALL        // myFunction(expression, expression)
-	INDEX       // array[indexs]
+	INDEX       // array[index]
+	ACCESS      // imported.value
 )
 
 var precedences = map[token.TokenType]int{
@@ -31,6 +32,7 @@ var precedences = map[token.TokenType]int{
 	token.ASTERISK:     PRODUCT,
 	token.LPAREN:       CALL,
 	token.LBRACKET:     INDEX,
+	token.DOT:          ACCESS,
 }
 
 type (
@@ -81,6 +83,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	parser.registerInfix(token.ASTERISK, parser.parseInfixExpression)
 	parser.registerInfix(token.LPAREN, parser.parseCallExpression)
 	parser.registerInfix(token.LBRACKET, parser.parseIndexExpression)
+	parser.registerInfix(token.DOT, parser.parseAccessExpression)
 
 	// Read two tokens, so currentToken and peekToken are both set
 	parser.nextToken()
@@ -129,6 +132,12 @@ func (parser *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return parser.parseReturnStatement()
 
+	case token.IMPORT:
+		return parser.parseImportStatement()
+
+	case token.EXPORT:
+		return parser.parseExportStatement()
+
 	default:
 		return parser.parseExpressionStatement()
 
@@ -175,6 +184,54 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	for parser.isPeekToken(token.SEMICOLON) {
 		parser.nextToken()
+	}
+
+	return statement
+}
+
+func (parser *Parser) parseImportStatement() *ast.ImportStatement {
+
+	if !parser.expectPeek(token.IDENTIFIER) {
+		return nil
+	}
+
+	statement := &ast.ImportStatement{
+		Token: parser.currentToken,
+		Identifier: &ast.Identifier{
+			Token: parser.currentToken,
+			Value: parser.currentToken.Literal,
+		},
+	}
+
+	if !parser.expectPeek(token.STRING) {
+		return nil
+	}
+
+	statement.Path = parser.currentToken.Literal
+
+	if !parser.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	return statement
+}
+
+func (parser *Parser) parseExportStatement() *ast.ExportStatement {
+	statement := &ast.ExportStatement{
+		Token: parser.currentToken,
+	}
+
+	if !parser.expectPeek(token.IDENTIFIER) {
+		return nil
+	}
+
+	statement.Identifier = &ast.Identifier{
+		Token: parser.currentToken,
+		Value: parser.currentToken.Literal,
+	}
+
+	if !parser.expectPeek(token.SEMICOLON) {
+		return nil
 	}
 
 	return statement
@@ -497,6 +554,19 @@ func (parser *Parser) parseHashLiteral() ast.Expression {
 	return hash
 }
 
+func (parser *Parser) parseAccessExpression(accessor ast.Expression) ast.Expression {
+	expression := &ast.AccessExpression{
+		Token:    parser.currentToken,
+		Accessor: accessor,
+	}
+
+	parser.nextToken()
+
+	expression.Accessed = parser.parseExpression(LOWEST)
+
+	return expression
+}
+
 // Utils
 
 func (parser *Parser) isCurrentToken(token token.TokenType) bool {
@@ -513,7 +583,8 @@ func (parser *Parser) expectPeek(token token.TokenType) bool {
 		return true
 	}
 
-	parser.addUnexepectedTokenError(parser.peekToken.Type, parser.currentToken)
+	parser.addUnexepectedTokenError(token, parser.currentToken)
+	parser.nextToken()
 	return false
 }
 

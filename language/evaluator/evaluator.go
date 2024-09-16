@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"glass/language/ast"
 	"glass/language/object"
+	"glass/language/parser"
+	"log"
+	"path"
+	"path/filepath"
 )
 
 var (
@@ -39,6 +43,12 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 		return &object.ReturnValue{
 			Value: Evaluate(node.Expression, environment),
 		}
+
+	case *ast.ImportStatement:
+		evaluateImportStatement(node, environment)
+
+	case *ast.ExportStatement:
+		evaluateExportStatement(node, environment)
 
 	// Expressions
 	case *ast.IntegerLiteral:
@@ -107,6 +117,9 @@ func Evaluate(node ast.Node, environment *object.Environment) object.Object {
 
 		return evaluateIndexExpression(left, index)
 
+	case *ast.AccessExpression:
+		return evaluateAccessExpression(node, environment)
+
 	case *ast.Function:
 		params := node.Parameters
 		body := node.Body
@@ -171,7 +184,47 @@ func evaluateBlockStatement(blockStatement *ast.BlockStatement, environment *obj
 	return result
 }
 
-func evaluateIdentifier(identifier *ast.Identifier, environment *object.Environment) object.Object {
+func evaluateImportStatement(importStatement *ast.ImportStatement, environment *object.Environment) object.Object {
+
+	filePath := path.Join(filepath.Dir(environment.Filepath), filepath.Clean(importStatement.Path))
+
+	program := parser.GetParsedFile(filePath)
+
+	if !environment.ProgramEnvironment.IsModuleEvaluated(filePath) {
+		moduleEnvironment := object.NewEnvironment(filePath, environment.ProgramEnvironment)
+		moduleEnvironment.ProgramEnvironment.RegisterModule(filePath)
+
+		result := Evaluate(program, moduleEnvironment)
+
+		if result != nil && result.GetType() == object.ERROR_OBJECT {
+			log.Fatal(result.Inspect())
+		}
+
+	}
+
+	environment.Set(importStatement.Identifier.Value, &object.Import{
+		Path: filePath,
+	})
+
+	return nil
+}
+
+func evaluateExportStatement(statement *ast.ExportStatement, environment *object.Environment) object.Object {
+
+	identifierObject := evaluateIdentifier(statement.Identifier, environment)
+
+	environment.Export(
+		statement.Identifier.Value,
+		identifierObject,
+	)
+
+	return identifierObject
+}
+
+func evaluateIdentifier(
+	identifier *ast.Identifier,
+	environment *object.Environment,
+) object.Object {
 	value, ok := environment.Get(identifier.Value)
 	if ok {
 		return value
@@ -432,6 +485,52 @@ func evaluateHashIndexExpression(hash object.Object, index object.Object) object
 	}
 
 	return pair.Value
+}
+
+func evaluateAccessExpression(expression *ast.AccessExpression, environment *object.Environment) object.Object {
+	accessor := Evaluate(expression.Accessor, environment)
+	if isError(accessor) {
+		return accessor
+	}
+
+	switch {
+
+	case accessor.GetType() == object.IMPORT_OBJECT:
+		return evaluateImportAccessExpression(accessor, expression.Accessed, environment)
+
+	default:
+		return newError("unsuported access type %s", accessor.GetType())
+
+	}
+}
+
+func evaluateImportAccessExpression(
+	accessor object.Object,
+	accessed ast.Expression,
+	environment *object.Environment,
+) object.Object {
+	importObject := accessor.(*object.Import)
+
+	switch accessed := accessed.(type) {
+
+	case *ast.CallExpression:
+		identifier := accessed.Function.(*ast.Identifier)
+		function, ok := environment.GetModuleValue(importObject.Path, identifier.Value)
+		if !ok {
+			return newError("Couldn't find '%s' from file : %s", identifier.Value, importObject.Path)
+		}
+
+		arguments := evaluateExpressions(accessed.Arguments, environment)
+		if len(arguments) == 1 && isError(arguments[0]) {
+			return arguments[0]
+		}
+
+		return applyFunction(function, arguments)
+
+	default:
+		return newError("Import access not supported for : %s", accessed.String())
+
+	}
 }
 
 // Utils
