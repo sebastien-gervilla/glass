@@ -29,7 +29,7 @@ func (environment *ProgramEnvironment) RegisterModuleExport(filepath string, nam
 
 // Environment
 type Environment struct {
-	filepath           string
+	Filepath           string
 	store              map[string]Object
 	outer              *Environment
 	ProgramEnvironment *ProgramEnvironment
@@ -37,7 +37,7 @@ type Environment struct {
 
 func NewEnvironment(filepath string, programEnvironment *ProgramEnvironment) *Environment {
 	return &Environment{
-		filepath:           filepath,
+		Filepath:           filepath,
 		store:              make(map[string]Object),
 		outer:              nil,
 		ProgramEnvironment: programEnvironment,
@@ -45,7 +45,7 @@ func NewEnvironment(filepath string, programEnvironment *ProgramEnvironment) *En
 }
 
 func NewEnclosedEnvironment(outer *Environment) *Environment {
-	environment := NewEnvironment(outer.filepath, outer.ProgramEnvironment)
+	environment := NewEnvironment(outer.Filepath, outer.ProgramEnvironment)
 	environment.outer = outer
 	return environment
 }
@@ -67,7 +67,7 @@ func (environment *Environment) Set(name string, value Object) Object {
 }
 
 func (environment *Environment) Export(name string, value Object) {
-	environment.ProgramEnvironment.RegisterModuleExport(environment.filepath, name, value)
+	environment.ProgramEnvironment.RegisterModuleExport(environment.Filepath, name, value)
 }
 
 func (environment *Environment) GetModuleValue(filepath string, name string) (Object, bool) {

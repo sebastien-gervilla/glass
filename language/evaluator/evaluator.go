@@ -7,6 +7,7 @@ import (
 	"glass/language/parser"
 	"log"
 	"path"
+	"path/filepath"
 )
 
 var (
@@ -185,13 +186,13 @@ func evaluateBlockStatement(blockStatement *ast.BlockStatement, environment *obj
 
 func evaluateImportStatement(importStatement *ast.ImportStatement, environment *object.Environment) object.Object {
 
-	filepath := path.Join(environment.ProgramEnvironment.RunDirectory, importStatement.Path)
+	filePath := path.Join(filepath.Dir(environment.Filepath), filepath.Clean(importStatement.Path))
 
-	program := parser.GetParsedFile(filepath)
+	program := parser.GetParsedFile(filePath)
 
-	if !environment.ProgramEnvironment.IsModuleEvaluated(filepath) {
-		moduleEnvironment := object.NewEnvironment(filepath, environment.ProgramEnvironment)
-		moduleEnvironment.ProgramEnvironment.RegisterModule(filepath)
+	if !environment.ProgramEnvironment.IsModuleEvaluated(filePath) {
+		moduleEnvironment := object.NewEnvironment(filePath, environment.ProgramEnvironment)
+		moduleEnvironment.ProgramEnvironment.RegisterModule(filePath)
 
 		result := Evaluate(program, moduleEnvironment)
 
@@ -202,7 +203,7 @@ func evaluateImportStatement(importStatement *ast.ImportStatement, environment *
 	}
 
 	environment.Set(importStatement.Identifier.Value, &object.Import{
-		Path: filepath,
+		Path: filePath,
 	})
 
 	return nil
