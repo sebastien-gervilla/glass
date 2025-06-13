@@ -62,7 +62,8 @@ func TestLanguage(testing *testing.T) {
 		for _, err := range errors {
 			log.Print(err)
 		}
-		return
+
+		testing.Fatal("multiple parsing errors occured")
 	}
 
 	result := evaluator.Evaluate(program, moduleEnvironment)
