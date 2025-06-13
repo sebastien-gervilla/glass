@@ -3,3 +3,6 @@ tmp
 
 # Language files
 /glass/*
+
+# Testing purposes
+main.exe

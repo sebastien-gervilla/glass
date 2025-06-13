@@ -134,6 +134,12 @@ func (lexer *Lexer) Next() token.Token {
 	case '*':
 		nextToken.Type = token.ASTERISK
 
+	case '>':
+		nextToken.Type = token.GREATER_THAN
+
+	case '<':
+		nextToken.Type = token.LESS_THAN
+
 	case '"':
 		nextToken.Type = token.STRING
 		nextToken.Literal = lexer.readString()
